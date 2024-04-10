@@ -61,31 +61,33 @@ def lambda_handler(event, context):
     #     'statusCode': 200,
     #     'body': res
     # }
-    print("Received event: " + json.dumps(event, indent=2))
+    print(event)
+    body = json.loads(event['body'])
 
     # Slackイベントの検証
     # Slackにこのchallenge値を返すことで、エンドポイントの検証を行います。
-    if "challenge" in event:
+    if "challenge" in body:
+        challenge = body['challenge']
         return {
-            'statusCode': 200,
-            'body': event["challenge"]
+            "statusCode": 200,
+            "body": json.dumps({"challenge": challenge})
+        }
+    else:
+        # lambdaからSlackに返答するためのWebHookURL
+        print('--------START: knowledge--------')
+        res = knowledge('西')
+        print('--------END: knowledge--------')
+        msg = {
+            "channel": "#general",
+            "username": "",
+            "text": f"${res}",
+            "icon_emoji": ""
         }
 
-    # lambdaからSlackに返答するためのWebHookURL
-    print('--------START: knowledge--------')
-    res = knowledge('西')
-    print('--------END: knowledge--------')
-    msg = {
-        "channel": "#general",
-        "username": "",
-        "text": f"${res}",
-        "icon_emoji": ""
-    }
-
-    encoded_msg = json.dumps(msg).encode('utf-8')
-    resp = http.request('POST', WEB_HOOK_URL, body=encoded_msg)
-    print({
-        "message": f"{res}",
-        "status_code": resp.status,
-        "response": resp.data
-    })
+        encoded_msg = json.dumps(msg).encode('utf-8')
+        resp = http.request('POST', WEB_HOOK_URL, body=encoded_msg)
+        print({
+            "message": f"{res}",
+            "status_code": resp.status,
+            "response": resp.data
+        })
