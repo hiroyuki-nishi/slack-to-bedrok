@@ -6,7 +6,7 @@ Resources:
   LangChainFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: langchain_lambda/
+      CodeUri: src/
       Handler: app.lambda_handler
       Runtime: python3.12
       MemorySize: 128
