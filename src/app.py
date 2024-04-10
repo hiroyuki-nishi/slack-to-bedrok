@@ -1,14 +1,20 @@
+import json
 import os
 
 import boto3
+import urllib3
 from dotenv import load_dotenv
 from langchain.chains import RetrievalQA
 from langchain.chat_models import BedrockChat
 from langchain.retrievers import AmazonKnowledgeBasesRetriever
 
+http = urllib3.PoolManager()
+
+
 bedrock_runtime = boto3.client('bedrock-runtime')
 load_dotenv('.env')
 KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
+WEB_HOOK_URL = os.getenv('WEB_HOOK_URL')
 
 
 def knowledge(name: str):
@@ -51,12 +57,35 @@ def lambda_handler(event, context):
     # parser = argparse.ArgumentParser(description="Chatbot")
     # parser.add_argument("--about", type=str, default="西")
     # name = parser.parse_args()
-    # langchainを使用した処理をここに記述
-    # この例では、受け取ったイベントの内容をそのまま返します
+    # return {
+    #     'statusCode': 200,
+    #     'body': res
+    # }
+    print("Received event: " + json.dumps(event, indent=2))
+
+    # Slackイベントの検証
+    # Slackにこのchallenge値を返すことで、エンドポイントの検証を行います。
+    if "challenge" in event:
+        return {
+            'statusCode': 200,
+            'body': event["challenge"]
+        }
+
+    # lambdaからSlackに返答するためのWebHookURL
     print('--------START: knowledge--------')
     res = knowledge('西')
     print('--------END: knowledge--------')
-    return {
-        'statusCode': 200,
-        'body': res
+    msg = {
+        "channel": "#general",
+        "username": "",
+        "text": f"${res}",
+        "icon_emoji": ""
     }
+
+    encoded_msg = json.dumps(msg).encode('utf-8')
+    resp = http.request('POST', WEB_HOOK_URL, body=encoded_msg)
+    print({
+        "message": f"{res}",
+        "status_code": resp.status,
+        "response": resp.data
+    })
