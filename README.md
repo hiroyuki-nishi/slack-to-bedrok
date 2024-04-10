@@ -61,6 +61,7 @@ sam deploy --guided
 後続のデプロイでは、sam deployを直接実行するだけで済みます。
 
 ```
+# 初回
 sam deploy --guided
 
 # 次回から
