@@ -11,7 +11,7 @@ python3 --version
 
 ## 仮想環境の作成
 ```
-python3 -m venv mylambdaenv
+python3 -m venv venv
 ```
 
 ## 仮想環境のアクティベート
