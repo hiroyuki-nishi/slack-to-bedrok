@@ -17,7 +17,7 @@ KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
 WEB_HOOK_URL = os.getenv('WEB_HOOK_URL')
 
 
-def knowledge(name: str):
+def knowledge(query: str):
     try:
         llm = BedrockChat(
             model_id="anthropic.claude-v2:1",
@@ -26,8 +26,6 @@ def knowledge(name: str):
             }
         )
 
-        print('--------debug: knowledge id--------')
-        print(KNOWLEDGE_BASE_ID)
         retriever = AmazonKnowledgeBasesRetriever(
             knowledge_base_id=KNOWLEDGE_BASE_ID,
             retrieval_config={
@@ -43,7 +41,6 @@ def knowledge(name: str):
             retriever=retriever,
             verbose=True
         )
-        query = f"{name}さんについて教えてください"
         print(query)
         result = qa.run(query)
         # TODO: streamで返す？
@@ -52,8 +49,22 @@ def knowledge(name: str):
         print(e)
 
 
+def is_slack_retry(event):
+    request_header = event["headers"]
+    keys = request_header.keys()
+    return "x-slack-retry-num" in keys and "x-slack-retry-reason" in keys and request_header[
+        "x-slack-retry-reason"] == "http_timeout"
+
+
 def lambda_handler(event, context):
     print('---------START---------')
+    if (is_slack_retry(event)):
+        return {
+            'statusCode': 200,
+            'body': {
+                'message': 'No need to resend'
+            }
+        }
     print(event)
     body = json.loads(event['body'])
 
@@ -66,9 +77,10 @@ def lambda_handler(event, context):
             "body": json.dumps({"challenge": challenge})
         }
     # lambdaからSlackに返答するためのWebHookURL
-    print('--------START: knowledge--------')
-    res = knowledge('西')
-    print('--------END: knowledge--------')
+    input_text = body["event"]["text"]
+    print("-------debug: input_text--------")
+    print(input_text)
+    res = knowledge(input_text)
     msg = {
         "channel": "#general",
         "username": "",
