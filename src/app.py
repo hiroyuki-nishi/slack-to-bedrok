@@ -54,13 +54,6 @@ def knowledge(name: str):
 
 def lambda_handler(event, context):
     print('---------START---------')
-    # parser = argparse.ArgumentParser(description="Chatbot")
-    # parser.add_argument("--about", type=str, default="西")
-    # name = parser.parse_args()
-    # return {
-    #     'statusCode': 200,
-    #     'body': res
-    # }
     print(event)
     body = json.loads(event['body'])
 
@@ -72,22 +65,23 @@ def lambda_handler(event, context):
             "statusCode": 200,
             "body": json.dumps({"challenge": challenge})
         }
-    else:
-        # lambdaからSlackに返答するためのWebHookURL
-        print('--------START: knowledge--------')
-        res = knowledge('西')
-        print('--------END: knowledge--------')
-        msg = {
-            "channel": "#general",
-            "username": "",
-            "text": f"${res}",
-            "icon_emoji": ""
-        }
+    # lambdaからSlackに返答するためのWebHookURL
+    print('--------START: knowledge--------')
+    res = knowledge('西')
+    print('--------END: knowledge--------')
+    msg = {
+        "channel": "#general",
+        "username": "",
+        "text": f"${res}",
+        "icon_emoji": ""
+    }
 
-        encoded_msg = json.dumps(msg).encode('utf-8')
-        resp = http.request('POST', WEB_HOOK_URL, body=encoded_msg)
-        print({
-            "message": f"{res}",
-            "status_code": resp.status,
-            "response": resp.data
-        })
+    encoded_msg = json.dumps(msg).encode('utf-8')
+    print('--------START: REQUEST--------')
+    resp = http.request('POST', WEB_HOOK_URL, body=encoded_msg)
+    print('--------END: REQUEST--------')
+    print({
+        "message": f"{res}",
+        "status_code": resp.status,
+        "response": resp.data
+    })
