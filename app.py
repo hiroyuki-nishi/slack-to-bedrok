@@ -15,7 +15,6 @@ KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
 parser = argparse.ArgumentParser(description="Chatbot")
 parser.add_argument("--about", type=str, default="西")
 name = parser.parse_args()
-# knowledge(name)
 print(KNOWLEDGE_BASE_ID)
 
 
