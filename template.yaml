@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Example Lambda application using langchain
+
+Resources:
+  LangChainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      MemorySize: 128
+      Timeout: 180
+      FunctionUrlConfig:
+        AuthType: NONE
+      Policies:
+        - AmazonBedrockFullAccess
+      Environment:
+        Variables:
+          KNOWLEDGE_BASE_ID: HOGE

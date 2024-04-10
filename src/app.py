@@ -1,16 +1,15 @@
-import boto3
 import os
-import json
-import argparse
+
+import boto3
 from dotenv import load_dotenv
 from langchain.chains import RetrievalQA
 from langchain.chat_models import BedrockChat
 from langchain.retrievers import AmazonKnowledgeBasesRetriever
 
-os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 bedrock_runtime = boto3.client('bedrock-runtime')
 load_dotenv('.env')
 KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
+
 
 def knowledge(name: str):
     try:
@@ -21,8 +20,10 @@ def knowledge(name: str):
             }
         )
 
+        print('--------debug: knowledge id--------')
+        print(KNOWLEDGE_BASE_ID)
         retriever = AmazonKnowledgeBasesRetriever(
-            knowledge_base_id="",
+            knowledge_base_id=KNOWLEDGE_BASE_ID,
             retrieval_config={
                 "vectorSearchConfiguration": {
                     "numberOfResults": 4
@@ -40,13 +41,22 @@ def knowledge(name: str):
         print(query)
         result = qa.run(query)
         # TODO: streamで返す？
-        print(result)
+        return result
     except Exception as e:
         print(e)
 
-# def lambda_handler(event, context):
-parser = argparse.ArgumentParser(description="Chatbot")
-parser.add_argument("--about", type=str, default="西")
-name = parser.parse_args()
-# knowledge(name)
-print(KNOWLEDGE_BASE_ID)
+
+def lambda_handler(event, context):
+    print('---------START---------')
+    # parser = argparse.ArgumentParser(description="Chatbot")
+    # parser.add_argument("--about", type=str, default="西")
+    # name = parser.parse_args()
+    # langchainを使用した処理をここに記述
+    # この例では、受け取ったイベントの内容をそのまま返します
+    print('--------START: knowledge--------')
+    res = knowledge('西')
+    print('--------END: knowledge--------')
+    return {
+        'statusCode': 200,
+        'body': res
+    }
