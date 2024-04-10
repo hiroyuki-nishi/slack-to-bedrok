@@ -10,6 +10,9 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.12
       MemorySize: 128
-      Timeout: 10
+      Timeout: 180
       Policies:
         - AmazonBedrockFullAccess
+      Environment:
+        Variables:
+          KNOWLEDGE_BASE_ID: HOGE
