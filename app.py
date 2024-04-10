@@ -2,12 +2,15 @@ import boto3
 import os
 import json
 import argparse
+from dotenv import load_dotenv
 from langchain.chains import RetrievalQA
 from langchain.chat_models import BedrockChat
 from langchain.retrievers import AmazonKnowledgeBasesRetriever
 
 os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 bedrock_runtime = boto3.client('bedrock-runtime')
+load_dotenv('.env')
+KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
 
 def knowledge(name: str):
     try:
@@ -45,4 +48,5 @@ def knowledge(name: str):
 parser = argparse.ArgumentParser(description="Chatbot")
 parser.add_argument("--about", type=str, default="西")
 name = parser.parse_args()
-knowledge(name)
+# knowledge(name)
+print(KNOWLEDGE_BASE_ID)
