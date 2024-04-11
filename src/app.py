@@ -52,7 +52,7 @@ def is_slack_retry(event: Dict[str, Any]) -> bool:
         return e
 
 
-def output_file_to_s3(content: str, file_name: str, bucket_name: str):
+def output_file_to_s3(content: str, file_name: str, bucket_name: str) -> str:
     try:
         with open(file_name, 'w') as file:
             file.write(content)
@@ -64,6 +64,7 @@ def output_file_to_s3(content: str, file_name: str, bucket_name: str):
                                                ExpiresIn=3600)  # URLの有効期限は1時間
 
         print(f"Signed URL to download the file: {signed_url}")
+        return signed_url
     except FileNotFoundError:
         print("Error: The file was not found.")
     except NoCredentialsError:
@@ -95,17 +96,17 @@ def lambda_handler(event: Dict[str, Any], context):
         print("-------debug: input_text--------")
         print(input_text)
         res = knowledge(input_text)
+        signed_url = output_file_to_s3(content=r, file_name='output.txt', bucket_name='nishi-test-ai')
+        text = f"{signed_url}\n\n{res['result']}"
         msg = {
             "channel": "#general",
             "username": "",
-            "text": f"{res['result']}",
+            "text": text,
             "icon_emoji": ""
         }
-
-        encoded_msg = json.dumps(msg).encode('utf-8')
-        resp = http.request('POST', WEB_HOOK_URL, body=encoded_msg)
+        resp = http.request('POST', WEB_HOOK_URL, body=json.dumps(msg).encode('utf-8'))
         print({
-            "message": f"{res}",
+            "message": text,
             "status_code": resp.status,
             "response": resp.data
         })
@@ -117,8 +118,9 @@ def lambda_handler(event: Dict[str, Any], context):
                 'message': 'Internal Server Error'
             }
         }
-
-
-r = knowledge("西さんについて教えてください！")['result']
-print(r)
-output_file_to_s3(content=r, file_name='output.txt', bucket_name='nishi-test-ai')
+#
+#
+# r = knowledge("西さんについて教えてください！")['result']
+# print(r)
+# signed_url = output_file_to_s3(content=r, file_name='output.txt', bucket_name='nishi-test-ai')
+# print(f"{signed_url}\n\n{r}")
