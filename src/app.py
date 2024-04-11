@@ -97,7 +97,7 @@ def lambda_handler(event: Dict[str, Any], context):
         print(input_text)
         result = knowledge(input_text)['result']
         signed_url = output_file_to_s3(content=result, file_name='/tmp/output.txt', bucket_name='nishi-test-ai')
-        text = f"{signed_url}\n\n{result}"
+        text = f"{result}\n\n{signed_url}"
         msg = {
             "channel": "#general",
             "username": "",
