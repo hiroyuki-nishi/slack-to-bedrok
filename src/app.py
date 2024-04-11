@@ -1,12 +1,13 @@
 import json
 import os
+from typing import Dict, Any
 
 import boto3
 import urllib3
 from dotenv import load_dotenv
 from langchain.chains import RetrievalQA
-from langchain.chat_models import BedrockChat
-from langchain.retrievers import AmazonKnowledgeBasesRetriever
+from langchain_community.chat_models import BedrockChat
+from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
 
 http = urllib3.PoolManager()
 
@@ -17,7 +18,7 @@ KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
 WEB_HOOK_URL = os.getenv('WEB_HOOK_URL')
 
 
-def knowledge(query: str):
+def knowledge(query: str) -> Dict[str, Any]:
     try:
         llm = BedrockChat(
             model_id="anthropic.claude-v2:1",
@@ -42,21 +43,21 @@ def knowledge(query: str):
             verbose=True
         )
         print(query)
-        result = qa.run(query)
+        result = qa.invoke(query)
         # TODO: streamで返す？
         return result
     except Exception as e:
         print(e)
 
 
-def is_slack_retry(event):
+def is_slack_retry(event: Dict[str, Any]) -> bool:
     request_header = event["headers"]
     keys = request_header.keys()
     return "x-slack-retry-num" in keys and "x-slack-retry-reason" in keys and request_header[
         "x-slack-retry-reason"] == "http_timeout"
 
 
-def lambda_handler(event, context):
+def lambda_handler(event: Dict[str, Any], context):
     print('---------START---------')
     if (is_slack_retry(event)):
         return {
@@ -97,3 +98,6 @@ def lambda_handler(event, context):
         "status_code": resp.status,
         "response": resp.data
     })
+
+# r = knowledge("西さんについて教えてください。回答はマークダウン記法をで出力してください。")
+# print(r)
