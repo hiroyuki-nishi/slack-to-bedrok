@@ -10,8 +10,6 @@ from langchain_community.chat_models import BedrockChat
 from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
 
 http = urllib3.PoolManager()
-
-
 bedrock_runtime = boto3.client('bedrock-runtime')
 load_dotenv('.env')
 KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
@@ -43,9 +41,8 @@ def knowledge(query: str) -> Dict[str, Any]:
             verbose=True
         )
         print(query)
-        result = qa.invoke(query)
         # TODO: streamで返す？
-        return result
+        return qa.invoke(query)
     except Exception as e:
         print(e)
 
@@ -58,7 +55,6 @@ def is_slack_retry(event: Dict[str, Any]) -> bool:
 
 
 def lambda_handler(event: Dict[str, Any], context):
-    print('---------START---------')
     if (is_slack_retry(event)):
         return {
             'statusCode': 200,
@@ -85,14 +81,12 @@ def lambda_handler(event: Dict[str, Any], context):
     msg = {
         "channel": "#general",
         "username": "",
-        "text": f"{res}",
+        "text": f"{res['result']}",
         "icon_emoji": ""
     }
 
     encoded_msg = json.dumps(msg).encode('utf-8')
-    print('--------START: REQUEST--------')
     resp = http.request('POST', WEB_HOOK_URL, body=encoded_msg)
-    print('--------END: REQUEST--------')
     print({
         "message": f"{res}",
         "status_code": resp.status,
@@ -100,4 +94,4 @@ def lambda_handler(event: Dict[str, Any], context):
     })
 
 # r = knowledge("西さんについて教えてください。回答はマークダウン記法をで出力してください。")
-# print(r)
+# print(r['result'])
