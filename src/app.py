@@ -84,7 +84,7 @@ def lambda_handler(event, context):
     msg = {
         "channel": "#general",
         "username": "",
-        "text": f"${res}",
+        "text": f"{res}",
         "icon_emoji": ""
     }
 
