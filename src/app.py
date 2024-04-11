@@ -11,22 +11,16 @@ from langchain_community.chat_models import BedrockChat
 from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
 
 http = urllib3.PoolManager()
-bedrock_runtime = boto3.client('bedrock-runtime')
+s3 = boto3.client('s3')
 load_dotenv('.env')
+
 KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
 WEB_HOOK_URL = os.getenv('WEB_HOOK_URL')
 
 
-
 def knowledge(query: str) -> Dict[str, Any]:
     try:
-        llm = BedrockChat(
-            model_id="anthropic.claude-v2:1",
-            model_kwargs={
-                "temperature": 0
-            }
-        )
-
+        llm = BedrockChat(model_id="anthropic.claude-v2:1", model_kwargs={"temperature": 0})
         retriever = AmazonKnowledgeBasesRetriever(
             knowledge_base_id=KNOWLEDGE_BASE_ID,
             retrieval_config={
@@ -35,7 +29,6 @@ def knowledge(query: str) -> Dict[str, Any]:
                 }
             }
         )
-
         qa = RetrievalQA.from_chain_type(
             llm=llm,
             chain_type='stuff',
@@ -59,23 +52,13 @@ def is_slack_retry(event: Dict[str, Any]) -> bool:
         return e
 
 
-def output_file_to_s3(file_name: str):
+def output_file_to_s3(content: str, file_name: str, bucket_name: str):
     try:
-        bucket_name = 'your_bucket_name'
-        content = "This is a sample text file content."
-        s3 = boto3.client('s3')
-        s3.upload_file(file_name, 'output', file_name)
-
-        # テキストファイルの作成と書き込み
         with open(file_name, 'w') as file:
             file.write(content)
 
-        # ファイルをS3にアップロード
         s3.upload_file(file_name, bucket_name, file_name)
-
         print(f"File '{file_name}' successfully uploaded to S3 bucket '{bucket_name}'.")
-
-        # 署名付きURLの生成
         signed_url = s3.generate_presigned_url('get_object',
                                                Params={'Bucket': bucket_name, 'Key': file_name},
                                                ExpiresIn=3600)  # URLの有効期限は1時間
@@ -136,6 +119,6 @@ def lambda_handler(event: Dict[str, Any], context):
         }
 
 
-# r = knowledge("簡単なマークダウンファイルを作成してください")
-# print(r['result'])
-output_file_to_s3('output.txt')
+r = knowledge("西さんについて教えてください！")['result']
+print(r)
+output_file_to_s3(content=r, file_name='output.txt', bucket_name='nishi-test-ai')
