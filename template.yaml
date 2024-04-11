@@ -15,6 +15,8 @@ Resources:
         AuthType: NONE
       Policies:
         - AmazonBedrockFullAccess
+        - AmazonS3FullAccess
       Environment:
         Variables:
-          KNOWLEDGE_BASE_ID: HOGE
+          KNOWLEDGE_BASE_ID: ''
+          WEB_HOOK_URL: ''
